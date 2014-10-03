@@ -1,19 +1,26 @@
 from gi.repository import Gtk, GObject
 import os
 import subprocess
+import long_lat_getter
+
 HOME = os.path.expanduser("~")
 FLUXGUIPATH = HOME+'/.fluxgui/'
 SETTINGFILE = FLUXGUIPATH+'settings.ini'
+
 class Xflux(object):
     def __init__(self):
         pass
     def update(self, lo, la, te):
-        killFlux = "kill -9 `pgrep xflux`"
-        bashCommand = "xflux -l %s -g %s -k %s" % (lo, la, te)
-        process = subprocess.Popen(killFlux.split(), stdout=subprocess.PIPE)
-        process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
-        output = process.communicate()[0]
-        print output
+        try:
+            while True:
+                getFluxPid = "pgrep xflux"
+                fluxPID = subprocess.check_output(getFluxPid.split())
+                killFlux = "kill -9 "+fluxPID
+                subprocess.call(killFlux.split())
+        except subprocess.CalledProcessError:
+            pass
+        runFlux = "xflux -l %s -g %s -k %s" % (lo, la, te)
+        subprocess.call(runFlux.split())
 
 class Saver(object):
     def __init__(self):
@@ -44,7 +51,7 @@ class Loader(object):
 class EntryWindow(Gtk.Window):
 
     def __init__(self):
-        Gtk.Window.__init__(self, title="FluxGUI")
+        Gtk.Window.__init__(self, title="xFluxGUI")
         self.saver = Saver()
         self.loader = Loader()
         self.flux = Xflux()
@@ -55,14 +62,30 @@ class EntryWindow(Gtk.Window):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         self.add(vbox)
 
-        self.entry_long = Gtk.Entry()
-        self.entry_long.set_text(lo)
-        vbox.pack_start(self.entry_long, True, True, 0)
+        self.entry_loc = Gtk.Entry()
+        self.entry_loc.set_text("Location")
+        vbox.pack_start(self.entry_loc, True, True, 0)
 
+        button = Gtk.Button("Longitude latitude from location")
+        button.connect("clicked", self.lat_lng_from_location)
+        vbox.pack_start(button, True, True, 0)
+
+        label = Gtk.Label("Latitude")
+        vbox.pack_start(label, True, True, 0)
 
         self.entry_lat = Gtk.Entry()
         self.entry_lat.set_text(la)
         vbox.pack_start(self.entry_lat, True, True, 0)
+
+        label = Gtk.Label("Longitude")
+        vbox.pack_start(label, True, True, 0)
+
+        self.entry_lng = Gtk.Entry()
+        self.entry_lng.set_text(lo)
+        vbox.pack_start(self.entry_lng, True, True, 0)
+
+        label = Gtk.Label("Color temperature")
+        vbox.pack_start(label, True, True, 0)
 
         self.entry_temp = Gtk.Entry()
         self.entry_temp.set_text(te)
@@ -72,16 +95,38 @@ class EntryWindow(Gtk.Window):
         button.connect("clicked", self.save_and_update)
         vbox.pack_start(button, True, True, 0)
 
+        self.textview = Gtk.TextView()
+        self.textview.set_wrap_mode(True)
+        self.textbuffer = self.textview.get_buffer()
+        vbox.pack_start(self.textview, True, True, 0)
+
     def save_and_update(self, button):
-        print button
-        longitude = self.entry_long.get_text()
+        longitude = self.entry_lng.get_text()
         latitude = self.entry_lat.get_text()
         colortemp = self.entry_temp.get_text()
         self.saver.save(longitude, latitude, colortemp)
         self.flux.update(longitude, latitude, colortemp)
+    def get_buffer_text(self):
+        return self.textbuffer.get_text(self.textbuffer.get_start_iter(), self.textbuffer.get_end_iter(), True)
+    def lat_lng_from_location(self, button):
+        l = long_lat_getter.LongLatGetter()
+        try:
+            lat, lng = l.get_lng_lat(self.entry_loc.get_text())
+        except long_lat_getter.Rxpt as r:
+            ermsg = ""
+            for x in r.args:
+                ermsg += x
+            self.textbuffer.set_text(ermsg)
+            return
+        self.entry_lat.set_text(str(lat))
+        self.entry_lng.set_text(str(lng))
 
-x = Xflux()
-win = EntryWindow()
-win.connect("delete-event", Gtk.main_quit)
-win.show_all()
-Gtk.main()
+def main():
+    x = Xflux()
+    win = EntryWindow()
+    win.connect("delete-event", Gtk.main_quit)
+    win.show_all()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()
