@@ -1,10 +1,5 @@
+from xceptions import Rxpt
 import requests
-import exceptions
-class Rxpt(Exception):
-    def __init__(self, msg):
-        self.msg = msg
-    def __str__(self):
-        return self.msg
 
 class LongLatGetter(object):
     def __init__(self):
@@ -14,7 +9,7 @@ class LongLatGetter(object):
         try:
             data = requests.get('http://maps.google.com/maps/api/geocode/json?address=%s' % place ).json()
         except requests.exceptions.ConnectionError as l:
-            raise Rxpt(l.__str__())
+            raise Rxpt("Could not connect.\n"+l.__str__())
         if data['status'] != "OK":
             raise Rxpt("Not ok.")
         if len(data['results']) < 1:
@@ -27,4 +22,3 @@ class LongLatGetter(object):
         lat = data['results'][0]['geometry']['location']['lat']
         lng = data['results'][0]['geometry']['location']['lng']
         return lat, lng
-

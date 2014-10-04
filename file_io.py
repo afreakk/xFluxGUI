@@ -1,6 +1,6 @@
 import os
 HOME = os.path.expanduser("~")
-FLUXGUIPATH = HOME+'/.fluxgui/'
+FLUXGUIPATH = HOME+'/.xfluxgui/'
 SETTINGFILE = FLUXGUIPATH+'settings.ini'
 
 def set_default_values():
@@ -25,17 +25,13 @@ class Loader(object):
         try:
             f = open(SETTINGFILE, 'r+')
             data = f.read().split('|')
-            values = [x.split('=')[1] for x in data]
-        except:
-            set_default_values()
-            return self.get_values()
-        finally:
             f.close()
-        if len(values) == 3:
+            values = [x.split('=')[1] for x in data]
             longitude = values[0]
             latitude = values[1]
             temp = values[2]
-        else:
+            int(longitude), int(latitude), int(temp) #check if valid intz
+        except Exception as e:
             set_default_values()
             return self.get_values()
         return longitude, latitude, temp

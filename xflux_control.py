@@ -6,12 +6,12 @@ class Xflux(object):
     def update(self, lo, la, te):
         try:
             while True:
-                getFluxPid = "pgrep xflux"
-                fluxPID = subprocess.check_output(getFluxPid.split())
-                killFlux = "kill -9 "+fluxPID
-                subprocess.call(killFlux.split())
+                bash_flux_pid = "pgrep xflux"
+                flux_pid = subprocess.check_output(bash_flux_pid.split())
+                bash_kill_flux = "kill -9 "+flux_pid)
+                subprocess.call(bash_kill_flux.split())
         except subprocess.CalledProcessError:
             pass
         finally:
-            runFlux = "xflux -l %s -g %s -k %s" % (lo, la, te)
-            subprocess.call(runFlux.split())
+            bash_run_flux = "xflux -l %s -g %s -k %s" % (lo, la, te)
+            subprocess.call(bash_run_flux.split())
