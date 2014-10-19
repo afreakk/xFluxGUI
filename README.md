@@ -5,7 +5,7 @@ GUI application for xflux using Python 2.7 and GTK
 
 to run:
 ---
-1. install [xFlux](https://justgetflux.com/linux.html)
+1. have xflux in path
 2. run xfluxgui
 
         ./main.py
