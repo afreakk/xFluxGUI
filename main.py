@@ -91,7 +91,7 @@ class EntryWindow(Gtk.Window):
             lat, lng, locstr = l.get_lng_lat(self.entry_loc.get_text())
             self.entry_lat.set_text(str(lat))
             self.entry_lng.set_text(str(lng))
-            self.console.append_txt("Successfully got coordinates from:\n" + locstr + "\nlng: %.2f lat: %.2f."%(lat,lng))
+            self.console.append_txt("Successfully got coordinates from:\n" + locstr + "\nlng: %.2f lat: %.2f."%(lng,lat))
         except Exception as l:
             self.console.append_txt(l.__str__())
 
