@@ -6,9 +6,11 @@ import xflux_control
 class Console(object):
     def __init__(self, textview):
         self.textbuffer = textview.get_buffer()
-        self.textbuffer.set_text("console..")
-    def out(self, txt):
-        self.textbuffer.set_text(txt)
+        self.append_txt("\n\n--xfluxgui--")
+    def append_txt(self, txt):
+        self.textbuffer.insert_at_cursor(txt)
+    def clear_txt(self):
+        self.textbuffer.set_text("")
 
 def get_labeled_entry(labelName):
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=1)
@@ -31,9 +33,9 @@ class EntryWindow(Gtk.Window):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(vbox)
 
-        self.entry_loc = Gtk.Entry()
-        self.entry_loc.set_text("Location")
-        vbox.pack_start(self.entry_loc, True, True, 0)
+        hbox, self.entry_loc = get_labeled_entry("Location")
+        self.entry_loc.set_text("Picadilly circus")
+        vbox.pack_start(hbox, True, True, 0)
 
         button = Gtk.Button("Longitude latitude from location")
         button.connect("clicked", self.lat_lng_from_location)
@@ -59,37 +61,36 @@ class EntryWindow(Gtk.Window):
 
     def set_loaded_values(self):
         try:
+            self.console.clear_txt()
             lng, lat, tmp = self.loader.get_values()
             int(lat), int(lat), int(tmp)
+            self.entry_lng.set_text(lng)
+            self.entry_lat.set_text(lat)
+            self.entry_temp.set_text(tmp)
         except Exception as l:
-            self.console.out(l.__str__())
-            return
-        self.entry_lng.set_text(lng)
-        self.entry_lat.set_text(lat)
-        self.entry_temp.set_text(tmp)
+            self.console.append_txt(l.__str__())
 
     def save_and_update(self, button):
         try:
+            self.console.clear_txt()
             lng = self.entry_lng.get_text()
             lat = self.entry_lat.get_text()
             tmp = self.entry_temp.get_text()
-            int(lat), int(lat), int(tmp)
+            self.saver.save(lng, lat, tmp)
+            self.flux.update(lng, lat, tmp, self.console)
         except Exception as l:
-            self.console.out(l.__str__())
-            return
-        self.saver.save(lng, lat, tmp)
-        self.flux.update(lng, lat, tmp)
+            self.console.append_txt(l.__str__())
 
     def lat_lng_from_location(self, button):
         try:
+            self.console.clear_txt()
             l = long_lat_getter.LongLatGetter()
-            lat, lng = l.get_lng_lat(self.entry_loc.get_text())
-            int(lat), int(lng)
+            lat, lng, locstr = l.get_lng_lat(self.entry_loc.get_text())
+            self.entry_lat.set_text(str(lat))
+            self.entry_lng.set_text(str(lng))
+            self.console.append_txt("Successfully got lat lng from:\n" + locstr)
         except Exception as l:
-            self.console.out(l.__str__())
-            return
-        self.entry_lat.set_text(str(lat))
-        self.entry_lng.set_text(str(lng))
+            self.console.append_txt(l.__str__())
 
 def main():
     win = EntryWindow()

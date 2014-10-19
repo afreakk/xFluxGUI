@@ -11,11 +11,12 @@ class Saver(object):
     def __init__(self):
         if not os.path.exists(FLUXGUIPATH):
             os.makedirs(FLUXGUIPATH)
-    def save(self, lo, la, te):
+    def save(self, lng, lat, tmp):
+        int(lng), int(lat), int(tmp) #check if valid intz
         f = open(SETTINGFILE , 'w+')
-        f.write('long=%s|'% lo)
-        f.write('lat=%s|'% la)
-        f.write('temp=%s'% te)
+        f.write('long=%s|'% lng)
+        f.write('lat=%s|'% lat)
+        f.write('tmp=%s'% tmp)
         f.close()
 
 class Loader(object):
@@ -27,11 +28,11 @@ class Loader(object):
             data = f.read().split('|')
             f.close()
             values = [x.split('=')[1] for x in data]
-            longitude = values[0]
-            latitude = values[1]
-            temp = values[2]
-            int(longitude), int(latitude), int(temp) #check if valid intz
+            lng = values[0]
+            lat = values[1]
+            tmp = values[2]
+            int(lng), int(lat), int(tmp) #check if valid intz
         except Exception as e:
             set_default_values()
             return self.get_values()
-        return longitude, latitude, temp
+        return lng, lat, tmp
