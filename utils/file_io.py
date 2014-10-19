@@ -12,7 +12,7 @@ class Saver(object):
         if not os.path.exists(FLUXGUIPATH):
             os.makedirs(FLUXGUIPATH)
     def save(self, lng, lat, tmp, loc):
-        int(lng), int(lat), int(tmp) #check if valid intz
+        float(lng), float(lat), float(tmp) #check if valid floatz
         f = open(SETTINGFILE , 'w+')
         f.write('long=%s|'% lng)
         f.write('lat=%s|'% lat)
@@ -33,7 +33,7 @@ class Loader(object):
             lat = values[1]
             tmp = values[2]
             loc = values[3]
-            int(lng), int(lat), int(tmp) #check if valid intz
+            float(lng), float(lat), float(tmp) #check if valid floatz
         except Exception as e:
             print e
             set_default_values()
