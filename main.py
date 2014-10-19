@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 from gi.repository import Gtk, GObject
-import long_lat_getter
-import file_io
-import xflux_control
+from utils import long_lat_getter
+from utils import file_io
+from utils import xflux_control
 
 class Console(object):
     def __init__(self, textview):
@@ -62,11 +63,12 @@ class EntryWindow(Gtk.Window):
     def set_loaded_values(self):
         try:
             self.console.clear_txt()
-            lng, lat, tmp = self.loader.get_values()
+            lng, lat, tmp, loc = self.loader.get_values()
             int(lat), int(lat), int(tmp)
             self.entry_lng.set_text(lng)
             self.entry_lat.set_text(lat)
             self.entry_temp.set_text(tmp)
+            self.entry_loc.set_text(loc)
         except Exception as l:
             self.console.append_txt(l.__str__())
 
@@ -76,7 +78,8 @@ class EntryWindow(Gtk.Window):
             lng = self.entry_lng.get_text()
             lat = self.entry_lat.get_text()
             tmp = self.entry_temp.get_text()
-            self.saver.save(lng, lat, tmp)
+            loc = self.entry_loc.get_text()
+            self.saver.save(lng, lat, tmp, loc)
             self.flux.update(lng, lat, tmp, self.console)
         except Exception as l:
             self.console.append_txt(l.__str__())
@@ -88,7 +91,7 @@ class EntryWindow(Gtk.Window):
             lat, lng, locstr = l.get_lng_lat(self.entry_loc.get_text())
             self.entry_lat.set_text(str(lat))
             self.entry_lng.set_text(str(lng))
-            self.console.append_txt("Successfully got lat lng from:\n" + locstr)
+            self.console.append_txt("Successfully got coordinates from:\n" + locstr + "\nlng: %.2f lat: %.2f."%(lat,lng))
         except Exception as l:
             self.console.append_txt(l.__str__())
 
