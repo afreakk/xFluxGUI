@@ -8,21 +8,24 @@ from utils import console
 class FluxGuiWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="xFluxGUI")
-        self.init_core()
-        self.init_gui()
-        self.connect_events()
-
-    def init_core(self):
         self.saver = file_io.Saver()
         self.loader = file_io.Loader()
         self.flux = xflux_control.Xflux()
         self.set_size_request(320, 320)
         self.timeout_id = None
 
+    def detect_xflux(self):
+        flux_pid = self.flux.flux_pid()
+        if len(flux_pid) > 0 :
+            self.console.append_txt("\nxflux currently running with pid: %s"%flux_pid)
+        else:
+            self.console.append_txt("\nxflux not currently running.")
+
     def connect_events(self):
-        self.restart_btn.connect("clicked", self.save_and_update)
-        self.get_coord_btn.connect("clicked", self.lat_lng_from_location)
-        self.kill_flux_btn.connect("clicked", self.kill_flux)
+        self.restart_btn.connect("clicked", self.btn_save_and_update)
+        self.get_coord_btn.connect("clicked", self.btn_lat_lng_from_location)
+        self.kill_flux_btn.connect("clicked", self.btn_kill_flux)
+        self.connect("delete-event", Gtk.main_quit)
 
     def init_gui(self):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
@@ -66,15 +69,15 @@ class FluxGuiWindow(Gtk.Window):
         except Exception as l:
             self.console.append_txt(l.__str__())
 
-# ---- callbacks-->
-    def kill_flux(self, button):
+# -- btn callbacks -->
+    def btn_kill_flux(self, button):
         try:
             pids = self.flux.kill_flux()
             self.console.append_txt("Successfully killed flux with pid: " + pids)
         except Exception as l:
             self.console.append_txt(l.__str__())
 
-    def save_and_update(self, button):
+    def btn_save_and_update(self, button):
         try:
             self.console.clear_txt()
             lng = self.entry_lng.get_text()
@@ -86,7 +89,7 @@ class FluxGuiWindow(Gtk.Window):
         except Exception as l:
             self.console.append_txt(l.__str__())
 
-    def lat_lng_from_location(self, button):
+    def btn_lat_lng_from_location(self, button):
         try:
             self.console.clear_txt()
             l = long_lat_getter.LongLatGetter()
@@ -96,7 +99,19 @@ class FluxGuiWindow(Gtk.Window):
             self.console.append_txt("Successfully got coordinates from:\n" + locstr + "\nlng: %.2f lat: %.2f."%(lng,lat))
         except Exception as l:
             self.console.append_txt(l.__str__())
-# ---- end-callbacks<--
+# <-- btn callbacks --
+
+def main():
+    xfluxgui = FluxGuiWindow()
+    xfluxgui.init_gui()
+    xfluxgui.connect_events()
+    xfluxgui.set_loaded_values()
+    xfluxgui.detect_xflux()
+    xfluxgui.show_all()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()
 
 def get_labeled_entry(labelName):
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=1)
@@ -106,13 +121,3 @@ def get_labeled_entry(labelName):
         entry = Gtk.Entry()
         hbox.pack_start(entry, True, True, 0)
         return hbox, entry
-
-def main():
-    win = FluxGuiWindow()
-    win.connect("delete-event", Gtk.main_quit)
-    win.show_all()
-    win.set_loaded_values()
-    Gtk.main()
-
-if __name__ == "__main__":
-    main()

@@ -14,13 +14,16 @@ def read_lines(x, console):
         time.sleep(0.1)
 
 class Xflux(object):
+    def flux_pid(self):
+        bash_flux_pid = "pgrep xflux"
+        return subprocess.check_output(bash_flux_pid.split())
+
     def kill_flux(self):
         try:
             killed_pids = ""
             old_flux_pid = None
             while 1:
-                bash_flux_pid = "pgrep xflux"
-                flux_pid = subprocess.check_output(bash_flux_pid.split())
+                flux_pid = self.flux_pid()
                 bash_kill_flux = "kill -9 "+flux_pid
                 subprocess.call(bash_kill_flux.split())
                 if old_flux_pid != None and old_flux_pid == flux_pid:
